@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  bag2img:
+    container_name: bag2img
+    build: .
+    tty: true
+    volumes:
+      - ./bag2img/output:/bag2img/output
+      - /mnt/d/Documents/PhD_Project/year_4/Blyth-data/15112022:/bag2img/data

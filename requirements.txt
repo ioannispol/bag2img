@@ -1,0 +1,4 @@
+#jupyterlab
+ipykernel
+opencv-python
+progressbar2
