@@ -12,3 +12,7 @@ RUN apt-get update && apt-get install -y \
   pip3 install -r requirements.txt
 
 SHELL ["/bin/bash", "-c"]
+
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+CMD [ "/bin/bash" ]
