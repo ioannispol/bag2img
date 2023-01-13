@@ -1,34 +1,9 @@
-FROM ros:noetic-ros-base AS build_env
-WORKDIR /bag2img
+ARG BASE_IMAGE=ubuntu:20.04
 
-COPY requirements.txt requirements.txt
-COPY bag_2_image.py bag_2_image.py
+FROM ${BASE_IMAGE} as librs_builder
 
-RUN apt-get update && apt-get install -y \
-  python3-pip \
-  git \
-  curl \
-  ros-$ROS_DISTRO-rosbag ros-$ROS_DISTRO-roslz4 \
-  ros-$(rosversion -d)-cv-bridge
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN pip3 install -r requirements.txt
-
-SHELL ["/bin/bash", "-c"]
-
-RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
-
-######################
-# Build librealsense #
-######################
-FROM build_env as librealsense_build
-
-ENV RS_VERSION=2.53.1
-
-RUN curl https://codeload.github.com/IntelRealSense/librealsense/tar.gz/v$RS_VERSION -o librealsense.tar.gz \
-    && tar -xzf librealsense.tar.gz \
-    && true
-
-# build deps
 RUN apt-get update \
     && apt-get install -qq -y --no-install-recommends \
     build-essential \
@@ -47,10 +22,21 @@ RUN apt-get update \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl https://codeload.github.com/IntelRealSense/librealsense/tar.gz/refs/tags/v$LIBRS_VERSION -o librealsense.tar.gz 
+RUN echo "Finish updates"
+
+WORKDIR /bag2img
+
+ARG RS_VERSION=2.53.1
+
+RUN curl https://codeload.github.com/IntelRealSense/librealsense/tar.gz/v$RS_VERSION -o librealsense.tar.gz \
+    && tar -xzf librealsense.tar.gz
+
 RUN tar -zxf librealsense.tar.gz \
     && rm librealsense.tar.gz 
-RUN ln -s /bag2img/librealsense-$LIBRS_VERSION /bag2img/librealsense
+
+RUN ln -s /bag2img/librealsense-$RS_VERSION /bag2img/librealsense
+
+RUN echo "Finish librealsense extraction"
 
 RUN cd /bag2img/librealsense \
     && mkdir build && cd build \
@@ -64,4 +50,23 @@ RUN cd /bag2img/librealsense \
     && make -j$(($(nproc)-1)) all \
     && make install 
 
-CMD [ "/bin/bash" ]
+FROM ${BASE_IMAGE} as librealsense
+
+COPY --from=librs_builder /opt/librealsense /usr/local/
+COPY --from=librs_builder /usr/lib/python3/dist-packages/pyrealsense2 /usr/lib/python3/dist-packages/pyrealsense2
+COPY --from=librs_builder /bag2img/librealsense/config/99-realsense-libusb.rules /etc/udev/rules.d/
+COPY --from=librs_builder /bag2img/librealsense/config/99-realsense-d4xx-mipi-dfu.rules /etc/udev/rules.d/
+ENV PYTHONPATH=$PYTHONPATH:/usr/local/lib
+
+# Install dep packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \	
+    libusb-1.0-0 \
+    udev \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+CMD [  "/bin/bash" ]
