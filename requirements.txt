@@ -2,3 +2,4 @@
 ipykernel
 opencv-python
 progressbar2
+numpy
