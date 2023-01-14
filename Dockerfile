@@ -69,4 +69,39 @@ RUN apt-get update \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
+FROM ros:noetic-ros-base as ros
+
+WORKDIR /bag2img
+
+COPY --from=librs_builder /opt/librealsense /usr/local/
+COPY --from=librs_builder /usr/lib/python3/dist-packages/pyrealsense2 /usr/lib/python3/dist-packages/pyrealsense2
+COPY --from=librs_builder /bag2img/librealsense/config/99-realsense-libusb.rules /etc/udev/rules.d/
+COPY --from=librs_builder /bag2img/librealsense/config/99-realsense-d4xx-mipi-dfu.rules /etc/udev/rules.d/
+ENV PYTHONPATH=$PYTHONPATH:/usr/local/lib
+
+# Install dep packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \	
+    libusb-1.0-0 \
+    udev \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt requirements.txt
+COPY bag_2_image.py bag_2_image.py
+
+#CMD apt update
+RUN apt-get update && apt-get install -y \
+  python3-pip \
+  git \
+  ros-$ROS_DISTRO-rosbag ros-$ROS_DISTRO-roslz4 \
+  ros-$(rosversion -d)-cv-bridge \
+  && rm -rf /var/lib/apt/lists/*
+RUN pip install -r requirements.txt
+
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
 CMD [  "/bin/bash" ]
