@@ -6,4 +6,4 @@ services:
     tty: true
     volumes:
       - ./bag2img/output:/bag2img/output
-      - /mnt/d/Documents/PhD_Project/year_4/Blyth-data/15112022:/bag2img/data
+      - /mnt/d/Documents/PhD_Project/year_4/Blyth-data/docker_data:/bag2img/data
