@@ -92,6 +92,7 @@ RUN apt-get update \
 
 COPY requirements.txt requirements.txt
 COPY bag_2_image.py bag_2_image.py
+COPY bag2img.py bag2img.py
 
 #CMD apt update
 RUN apt-get update && apt-get install -y \
