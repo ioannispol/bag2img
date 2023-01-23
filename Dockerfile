@@ -44,7 +44,7 @@ RUN cd /bag2img/librealsense \
     -DCMAKE_C_FLAGS_RELEASE="${CMAKE_C_FLAGS_RELEASE} -s" \
     -DCMAKE_CXX_FLAGS_RELEASE="${CMAKE_CXX_FLAGS_RELEASE} -s" \
     -DCMAKE_INSTALL_PREFIX=/opt/librealsense \    
-    -DBUILD_GRAPHICAL_EXAMPLES=OFF \
+    -DBUILD_GRAPHICAL_EXAMPLES=ON \
     -DBUILD_PYTHON_BINDINGS:bool=true \
     -DCMAKE_BUILD_TYPE=Release ../ \
     && make -j$(($(nproc)-1)) all \
