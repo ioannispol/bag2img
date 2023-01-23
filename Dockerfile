@@ -104,5 +104,6 @@ RUN apt-get update && apt-get install -y \
 RUN pip install -r requirements.txt
 
 #RUN apt-get install ros-$(rosversion -d)-cv-bridge
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 
 CMD [  "/bin/bash" ]
